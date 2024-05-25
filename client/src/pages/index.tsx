@@ -26,6 +26,9 @@ const createProfile = async (params: ProfileCreateParams) => {
   const reponse = await fetch(`${process.env.NEXT_PUBLIC_FEED_SERVICE}/profile`, {
     body: JSON.stringify(params),
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
   if (!reponse.ok) {
