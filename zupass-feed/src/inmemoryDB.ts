@@ -8,6 +8,7 @@ const _storedSerializedPODs = new Map<string, SerializedPCD<PCD<PODPCDClaim, POD
 const _unlocks = new Array<Unlock>();
 const _storedRawData = new Map<string, ProfileCreateParams>();
 
+
 export const IsUnlocked = (sid_a: string, sid_b: string) => {
     // check bidirectional unlocks
     return _unlocks.some(u => (u.sid_a === sid_a && u.sid_b === sid_b) || (u.sid_a === sid_b && u.sid_b === sid_a));
@@ -50,8 +51,10 @@ export const StoreProfile = async (sid: string, profile: ProfileCreateParams, se
 }
 
 export const initialize = async () => {
+    console.log('Initializing in-memory DB');
     try {
         const storedSerializedPODs = await kv.get<string>('storedSerializedPODs');
+
         const storedUnlocks = await kv.get<string>('unlocks');
         const storedRawData = await kv.get<string>('storedRawData');
 
@@ -60,17 +63,22 @@ export const initialize = async () => {
             Object.keys(parsedPODs).forEach(key => {
                 _storedSerializedPODs.set(key, parsedPODs[key]);
             });
+            console.log('Serialized PODs restored from Vercel KV', _storedSerializedPODs.size);
         }
+
 
         if (storedUnlocks) {
             _unlocks.push(...JSON.parse(storedUnlocks));
+            console.log('Unlocks restored from Vercel KV', _unlocks.length);
         }
+
 
         if (storedRawData) {
             const parsedRawData = JSON.parse(storedRawData);
             Object.keys(parsedRawData).forEach(key => {
                 _storedRawData.set(key, parsedRawData[key]);
             });
+            console.log('Raw data restored from Vercel KV', _storedRawData.size);
         }
 
         console.log('Data restored from Vercel KV');
@@ -80,5 +88,6 @@ export const initialize = async () => {
 };
 
 initialize();
+
 
 
