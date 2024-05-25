@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "preview": "npm run pages:build && wrangler pages dev",
+    "deploy": "npm run pages:build && wrangler pages deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
@@ -18,9 +22,13 @@
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
-    "thirdweb": "^5.24.0"
+    "thirdweb": "^5.24.0",
+    "react-qr-code": "^2.0.13",
+    "use-local-storage": "^3.0.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.11.3",
+    "@cloudflare/workers-types": "^4.20240512.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

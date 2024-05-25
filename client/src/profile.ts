@@ -5,6 +5,8 @@ export type ProfileCreateParams = {
 	description?: string;
 }
 
+export type Profile = ProfileCreateParams;
+
 const createProfile = async (params: ProfileCreateParams) => {
 	console.info(`Creating profile for ${JSON.stringify(params)}`);
 	const reponse = await fetch(`${process.env.NEXT_PUBLIC_FEED_SERVICE}/profile`, {
