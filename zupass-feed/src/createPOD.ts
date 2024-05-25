@@ -3,9 +3,6 @@ import { POD, podEntriesFromSimplifiedJSON } from "@pcd/pod";
 import { PODPCD, PODPCDClaim, PODPCDPackage, PODPCDProof } from "@pcd/pod-pcd";
 import { PCD, SerializedPCD } from "@pcd/pcd-types";
 
-// type for jobject
-
-
 
 const createJson = (sid: string, url: string, title: string | undefined, description: string | undefined) => {
     var jobject: any = {

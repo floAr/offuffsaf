@@ -73,11 +73,18 @@ export const GetStats = (sid: string) => {
 export const initialize = async () => {
     console.log('Initializing in-memory DB');
     try {
-        const storedSerializedPODs = JSON.stringify(await kv.get('storedSerializedPODs'));
-        const storedUnlocks = JSON.stringify(await kv.get<string>('unlocks'));
-        const storedRawData = JSON.stringify(await kv.get<string>('storedRawData'));
 
-        console.log(storedSerializedPODs)
+        // Start all KV get operations simultaneously
+        const [storedSerializedPODsResponse, storedUnlocksResponse, storedRawDataResponse] = await Promise.all([
+            kv.get('storedSerializedPODs'),
+            kv.get('unlocks'),
+            kv.get('storedRawData')
+        ]);
+
+        // Convert responses to JSON strings
+        const storedSerializedPODs = JSON.stringify(storedSerializedPODsResponse);
+        const storedUnlocks = JSON.stringify(storedUnlocksResponse);
+        const storedRawData = JSON.stringify(storedRawDataResponse);
 
         if (storedSerializedPODs) {
             const parsedPODs = JSON.parse(storedSerializedPODs as any);
@@ -108,7 +115,6 @@ export const initialize = async () => {
     }
 };
 
-initialize();
 
 
 

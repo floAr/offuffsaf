@@ -3,7 +3,7 @@ import cors from 'cors';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
 import { ProfileCreateParams, UnlockRequestParams, folderName } from './types'
-import { AddUnlock, ClearAll, GetAllPODS, GetAllUnlocks, GetFilteredPODS, GetStats, StoreProfile } from './inmemoryDB';
+import { AddUnlock, ClearAll, GetAllPODS, GetAllUnlocks, GetFilteredPODS, GetStats, StoreProfile, initialize } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 
@@ -157,10 +157,12 @@ app.get('/dev/stats', async (req, res) => {
 
 
 
-
-// Start the server
-app.listen(port, () => {
-    console.log(`Zupass feed server running at http://localhost:${port}`);
-});
+initialize().then(() => {
+    console.error(GetStats("0x1"));
+    // Start the server
+    app.listen(port, () => {
+        console.error(`Zupass feed server running at http://localhost:${port}`);
+    });
+})
 
 module.exports = app;
