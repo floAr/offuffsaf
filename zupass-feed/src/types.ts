@@ -12,11 +12,10 @@ export type ProfileCreateParams = {
     description?: string;
 }
 
-
 export type UnlockRequestParams = {
     attendeeSemaphoreIdA: string;
     attendeeSemaphoreIdB: string;
 }
 
-
+// constant to stop messing up with the folder name
 export const folderName = "ETHBerlin-Zumeet";

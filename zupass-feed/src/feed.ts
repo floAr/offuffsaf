@@ -1,6 +1,7 @@
 import { ListFeedsResponseValue } from "@pcd/passport-interface";
 import { folderName } from "./types";
 
+// static data for our feed registration
 export const FeedRegistration: ListFeedsResponseValue = {
     providerName: "ETHBerlinHack",
     providerUrl: "https://zupass-feed.vercel.app/api/feeds",
