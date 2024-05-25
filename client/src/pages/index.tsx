@@ -1,16 +1,15 @@
 import Head from "next/head";
 
+import { Inter } from "next/font/google";
 import { zuAuthPopup } from "@pcd/zuauth";
 import { ETHBERLIN04 } from "@pcd/zuauth/configs/ethberlin";
 
 import { authenticate } from "@pcd/zuauth/server";
+import { useState } from "react";
 import { Box, Button, FormControl, FormLabel, Heading, Input, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Textarea, VStack, useSteps } from "@chakra-ui/react";
 import { createThirdwebClient } from "thirdweb";
 import { resolveScheme, upload } from "thirdweb/storage";
-import { Profile, createProfile } from "../profile";
-import useLocalStorage from "use-local-storage";
-import { ZKEdDSAEventTicketPCD } from "@pcd/zk-eddsa-event-ticket-pcd";
-import QRCode from "react-qr-code";
+import { createProfile } from "../profile";
 
 if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
   throw new Error('Missing NEXT_PUBLIC_THIRDWEB_CLIENT_ID');
@@ -31,8 +30,7 @@ const steps = [
 ];
 
 export default function Home() {
-  const [authResult, setAuthResult] = useLocalStorage<ZKEdDSAEventTicketPCD | null>('authResult', null);
-  const [profile, setProfile] = useLocalStorage<Profile | null>('profile', null);
+  const [authResult, setAuthResult] = useState<any | null>(null);
 
   const { activeStep, goToNext } = useSteps({
     index: 0,
@@ -94,10 +92,6 @@ export default function Home() {
       uri,
     });
 
-    if (!authResult?.claim.partialTicket.attendeeSemaphoreId) {
-      throw new Error('No authResult');
-    }
-
     const payload = {
       attendeeSemaphoreId: authResult.claim.partialTicket.attendeeSemaphoreId,
       url,
@@ -107,7 +101,6 @@ export default function Home() {
 
     console.info(`Creating profile for ${JSON.stringify(payload)}`);
 
-    setProfile(payload);
     await createProfile(payload);
   };
   return (
@@ -151,35 +144,31 @@ export default function Home() {
           </VStack>)}
           {activeStep == 1 && (<VStack spacing={3}>
             <p>By pressing below button, you will verify your attendance at ETHBerlin04 with Zupass.</p>
-            {authResult ? (<><p>Already verified</p><Button onClick={goToNext}>Next</Button></>) : <Button onClick={onClick}>Verify</Button>}
+            <Button onClick={onClick}>Verify</Button>
           </VStack>)}
           {activeStep == 2 && (<VStack spacing={3}>
             <p>Setup your profile by providing a name and an image, which will show up in contacts of your connections</p>
-            {profile ? (<><p>Profile created</p><Button onClick={goToNext}>Next</Button></>) :
-              (<form onSubmit={onSubmit}>
-                <VStack spacing={1}>
-                  <FormControl isRequired>
-                    <FormLabel>Name</FormLabel>
-                    <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
-                  </FormControl>
-                  <FormControl isRequired>
-                    <FormLabel>Bio</FormLabel>
-                    <Textarea placeholder="Type a short bio about yourself" name="bio" />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Image</FormLabel>
-                    <input type="file" name="image" required={true} />
-                  </FormControl>
-                  <Button type="submit">Next</Button>
-                </VStack>
-              </form>)}
+            <form onSubmit={onSubmit}>
+              <VStack spacing={1}>
+                <FormControl isRequired>
+                  <FormLabel>Name</FormLabel>
+                  <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Bio</FormLabel>
+                  <Textarea placeholder="Type a short bio about yourself" name="bio" />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Image</FormLabel>
+                  <input type="file" name="image" required={true} />
+                </FormControl>
+                <Button type="submit">Next</Button>
+              </VStack>
+            </form>
           </VStack>)}
           {activeStep == 3 && (<VStack spacing={3}>
-            {!profile ? (<><Spinner />
-              <p>Creating profile...</p></>) : (<>
-                <p>Profile created</p>
-                <QRCode value={`${process.env.NEXT_PUBLIC_URL}/connect?attendeeSemaphoreId=${profile.attendeeSemaphoreId}`} />
-              </>)}
+            <Spinner />
+            <p>Creating profile...</p>
           </VStack>)}
         </VStack>
       </main>

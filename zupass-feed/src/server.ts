@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import next from 'next';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
 import { ProfileCreateParams, UnlockRequestParams } from './types'
@@ -10,7 +9,6 @@ import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 
 
 const app = express();
-const app2 = next({ dev: process.env.NODE_ENV !== 'production' })
 const port = process.env.PORT || 3000;
 
 // Configure CORS to allow requests from zupass.org and localhost
@@ -136,11 +134,7 @@ app.get('/dev/all', async (req, res) => {
 });
 
 
-// yulz, registering it hopefully last, tx to async.
-app2.prepare().then(() => {
-    const handler = app2.getRequestHandler();
-    app.get('*', (req, res) => handler(req, res));
-})
+
 
 // Start the server
 app.listen(port, () => {
