@@ -3,7 +3,7 @@ import cors from 'cors';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
 import { ProfileCreateParams, UnlockRequestParams } from './types'
-import { AddUnlock, GetAllPODS, GetFilteredPODS, StoreProfile } from './inmemoryDB';
+import { AddUnlock, GetAllPODS, GetAllUnlocks, GetFilteredPODS, StoreProfile } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 
@@ -40,16 +40,14 @@ app.get('/api/feeds', (req, res) => {
 
 app.post('/profile', async (req, res) => {
     var creationParameters: ProfileCreateParams = req.body;
-    console.log(`Creating profile for ${JSON.stringify(creationParameters)}`);
     var serializedPOD = await createSerializedPOD(EXAMPLE_EDDSA_PRIVATE_KEY, creationParameters.attendeeSemaphoreId, creationParameters.url, creationParameters.title, creationParameters.description);
-    StoreProfile(creationParameters.attendeeSemaphoreId, creationParameters, serializedPOD);
+    await StoreProfile(creationParameters.attendeeSemaphoreId, creationParameters, serializedPOD);
     res.status(200).json({ success: true });
 });
 
 app.post('/unlock', async (req, res) => {
     var creationParameters: UnlockRequestParams = req.body;
-    console.log(`Unlocking ${JSON.stringify(creationParameters)}`);
-    AddUnlock({ sid_a: creationParameters.attendeeSemaphoreIdA, sid_b: creationParameters.attendeeSemaphoreIdB });
+    await AddUnlock({ sid_a: creationParameters.attendeeSemaphoreIdA, sid_b: creationParameters.attendeeSemaphoreIdB });
     res.status(200).json({ success: true });
 });
 
@@ -60,13 +58,13 @@ app.post('/api/feeds', async (req, res) => {
     console.log(parsed);
 
     const sig = await SemaphoreSignaturePCDPackage.deserialize(request.pcd!.pcd);
-    console.log(sig);
-    console.log(`Requester public key: ${sig.claim.identityCommitment}`);
     // // sig.claim.identityCommitment == public key of requester
     var allSPods = GetFilteredPODS(sig.claim.identityCommitment);
     var result: PollFeedResponseValue = {
         actions: []
     };
+
+    result.actions.push({ folder: "ETHBerlin-Game", type: "DeleteFolder_action", recursive: false });
 
     result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
 
@@ -112,19 +110,27 @@ app.get('/dev/prefill', async (req, res) => {
 
 app.get('/dev/unlock', async (req, res) => {
     const queryParams = req.query;
-    AddUnlock({ sid_a: queryParams.sid_a as string, sid_b: queryParams.sid_b as string });
+    await AddUnlock({ sid_a: queryParams.sid_a as string, sid_b: queryParams.sid_b as string });
     res.status(200).json({ success: true });
 });
 
 app.get('/dev/all', async (req, res) => {
+    // check if there is a sid query parameter
+    const queryParams = req.query;
+    var filtered: any[] = [];
+    if (queryParams.sid) {
+        filtered = GetFilteredPODS(queryParams.sid as string);
+    }
+
     var allSPods = GetAllPODS();
+    var allUnlocks = GetAllUnlocks();
     var result: PollFeedResponseValue = {
         actions: []
     };
 
     result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
 
-    res.status(200).json(result);
+    res.status(200).json({ allSPods, allUnlocks, filtered });
 });
 
 
