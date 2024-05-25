@@ -1,0 +1,27 @@
+{
+  "name": "zupass-feed",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pcd/passport-interface": "^0.11.0",
+    "@pcd/pcd-types": "^0.11.0",
+    "@pcd/rsa-image-pcd": "^0.5.0",
+    "@pcd/semaphore-signature-pcd": "^0.11.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "node-rsa": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node-rsa": "^1.1.4"
+  }
+}
