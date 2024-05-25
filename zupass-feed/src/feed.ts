@@ -8,8 +8,8 @@ export const FeedRegistration: ListFeedsResponseValue = {
         {
 
             id: "1",
-            name: "ZuMeet",
-            description: "ZuMatch let's you connect with other participants by exchanging your event profile with each other, in three simple steps!",
+            name: "Zumeet",
+            description: "Zumeet let's you connect with other participants by exchanging your event profile with each other, in three simple steps!",
             credentialRequest: {
                 signatureType: "sempahore-signature-pcd"
             },

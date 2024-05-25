@@ -50,6 +50,26 @@ export const StoreProfile = async (sid: string, profile: ProfileCreateParams, se
 
 }
 
+export const ClearAll = async () => {
+    _storedRawData.clear();
+    _storedSerializedPODs.clear();
+    _unlocks.length = 0;
+    await kv.set('storedRawData', JSON.stringify(Object.fromEntries(_storedRawData)));
+    await kv.set('storedSerializedPODs', JSON.stringify(Object.fromEntries(_storedSerializedPODs)));
+    await kv.set('unlocks', JSON.stringify(_unlocks));
+}
+
+export const GetStats = (sid: string) => {
+    const totalEntries = _storedSerializedPODs.size;
+    const myUnlocks = _unlocks.filter(u => u.sid_a === sid || u.sid_b === sid).length;
+    const myUnlocksPercent = myUnlocks / totalEntries * 100;
+    const myConnections = _unlocks.filter(u => u.sid_a === sid || u.sid_b === sid).map(u => u.sid_a === sid ? u.sid_b : u.sid_a);
+    const myUnlocksSecondDegree = _unlocks.filter(u => myConnections.includes(u.sid_a) || myConnections.includes(u.sid_b)).length;
+    const myUnlocksSecondDegreePercent = myUnlocksSecondDegree / totalEntries * 100;
+    return { totalEntries, myUnlocks, myUnlocksPercent, myUnlocksSecondDegree, myUnlocksSecondDegreePercent };
+};
+
+
 export const initialize = async () => {
     console.log('Initializing in-memory DB');
     try {

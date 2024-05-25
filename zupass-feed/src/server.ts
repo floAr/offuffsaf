@@ -3,11 +3,11 @@ import cors from 'cors';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
 import { ProfileCreateParams, UnlockRequestParams, folderName } from './types'
-import { AddUnlock, GetAllPODS, GetAllUnlocks, GetFilteredPODS, StoreProfile } from './inmemoryDB';
+import { AddUnlock, ClearAll, GetAllPODS, GetAllUnlocks, GetFilteredPODS, GetStats, StoreProfile } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 
-
+// Init express app and cors
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -31,13 +31,32 @@ app.use(express.json());
 export const EXAMPLE_EDDSA_PRIVATE_KEY =
     "0001020304050607080900010203040506070809000102030405060708090001";
 
-// Endpoint to get the feed
+// Endpoint to get the feed, used for feed discovery from zupass.org
 app.get('/api/feeds', (req, res) => {
     res.status(200).json(FeedRegistration);
 });
 
 
+// Polling a subscriped feed
+app.post('/api/feeds', async (req, res) => {
+    // parse out the identity from the request
+    const request: PollFeedRequest = req.body;
+    var parsed = JSON.parse(request.pcd!.pcd);
+    const sig = await SemaphoreSignaturePCDPackage.deserialize(request.pcd!.pcd);
+    var allSPods = GetFilteredPODS(sig.claim.identityCommitment);
+    var result: PollFeedResponseValue = {
+        actions: []
+    };
+    // clear the feed, without this Zupass.org will not update
+    result.actions.push({ folder: folderName, type: "DeleteFolder_action", recursive: false });
 
+    // add all pcds to the feed
+    result.actions.push({ folder: folderName, type: "AppendToFolder_action", pcds: allSPods });
+
+    res.status(200).json(result);
+});
+
+// api endpoint to register a profile
 app.post('/profile', async (req, res) => {
     var creationParameters: ProfileCreateParams = req.body;
     var serializedPOD = await createSerializedPOD(EXAMPLE_EDDSA_PRIVATE_KEY, creationParameters.attendeeSemaphoreId, creationParameters.url, creationParameters.title, creationParameters.description);
@@ -45,6 +64,7 @@ app.post('/profile', async (req, res) => {
     res.status(200).json({ success: true });
 });
 
+// api endpoint to register an unlock
 app.post('/unlock', async (req, res) => {
     var creationParameters: UnlockRequestParams = req.body;
     await AddUnlock({ sid_a: creationParameters.attendeeSemaphoreIdA, sid_b: creationParameters.attendeeSemaphoreIdB });
@@ -52,25 +72,9 @@ app.post('/unlock', async (req, res) => {
 });
 
 
-app.post('/api/feeds', async (req, res) => {
-    const request: PollFeedRequest = req.body;
-    var parsed = JSON.parse(request.pcd!.pcd);
-    console.log(parsed);
+// dev endpoints to make our hackathon life a tiinyyyy bit easier
 
-    const sig = await SemaphoreSignaturePCDPackage.deserialize(request.pcd!.pcd);
-    // // sig.claim.identityCommitment == public key of requester
-    var allSPods = GetFilteredPODS(sig.claim.identityCommitment);
-    var result: PollFeedResponseValue = {
-        actions: []
-    };
-
-    result.actions.push({ folder: folderName, type: "DeleteFolder_action", recursive: false });
-
-    result.actions.push({ folder: folderName, type: "AppendToFolder_action", pcds: allSPods });
-
-    res.status(200).json(result);
-});
-
+// generate mock profiles
 app.get('/dev/prefill', async (req, res) => {
     // generate some random profiles
     const profile1: ProfileCreateParams = {
@@ -107,13 +111,20 @@ app.get('/dev/prefill', async (req, res) => {
     res.status(200).json({ success: true });
 });
 
-
+// add a custom unlock
 app.get('/dev/unlock', async (req, res) => {
     const queryParams = req.query;
     await AddUnlock({ sid_a: queryParams.sid_a as string, sid_b: queryParams.sid_b as string });
     res.status(200).json({ success: true });
 });
 
+// clear everything
+app.get('/dev/purge', async (req, res) => {
+    await ClearAll();
+    res.status(200).json({ success: true });
+});
+
+// get a view of the current state
 app.get('/dev/all', async (req, res) => {
     // check if there is a sid query parameter
     const queryParams = req.query;
@@ -131,6 +142,17 @@ app.get('/dev/all', async (req, res) => {
     result.actions.push({ folder: folderName, type: "AppendToFolder_action", pcds: allSPods });
 
     res.status(200).json({ allSPods, allUnlocks, filtered });
+});
+
+// debug stats , showing total profiles and your reach within the network
+app.get('/dev/stats', async (req, res) => {
+    const queryParams = req.query;
+
+    if (queryParams.sid) {
+        res.status(200).json({ stats: GetStats(queryParams.sid as string) });
+    }
+    else
+        res.status(200).json({});
 });
 
 

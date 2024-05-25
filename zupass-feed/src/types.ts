@@ -1,10 +1,10 @@
-// unlock type
-
+// Unlocks are biredirectional access rights, so sid_a can access sid_b and vice versa
 export type Unlock = {
     sid_a: string,
     sid_b: string
 }
 
+// Requet params from the client application
 export type ProfileCreateParams = {
     attendeeSemaphoreId: string;
     url: string;
@@ -19,4 +19,4 @@ export type UnlockRequestParams = {
 }
 
 
-export const folderName = "ETHBerlin-ZuMeet";
+export const folderName = "ETHBerlin-Zumeet";
