@@ -53,13 +53,14 @@ export const StoreProfile = async (sid: string, profile: ProfileCreateParams, se
 export const initialize = async () => {
     console.log('Initializing in-memory DB');
     try {
-        const storedSerializedPODs = await kv.get<string>('storedSerializedPODs');
+        const storedSerializedPODs = JSON.stringify(await kv.get('storedSerializedPODs'));
+        const storedUnlocks = JSON.stringify(await kv.get<string>('unlocks'));
+        const storedRawData = JSON.stringify(await kv.get<string>('storedRawData'));
 
-        const storedUnlocks = await kv.get<string>('unlocks');
-        const storedRawData = await kv.get<string>('storedRawData');
+        console.log(storedSerializedPODs)
 
         if (storedSerializedPODs) {
-            const parsedPODs = JSON.parse(storedSerializedPODs);
+            const parsedPODs = JSON.parse(storedSerializedPODs as any);
             Object.keys(parsedPODs).forEach(key => {
                 _storedSerializedPODs.set(key, parsedPODs[key]);
             });
