@@ -1,15 +1,17 @@
 import Head from "next/head";
 
-import { Inter } from "next/font/google";
 import { zuAuthPopup } from "@pcd/zuauth";
 import { ETHBERLIN04 } from "@pcd/zuauth/configs/ethberlin";
 
 import { authenticate } from "@pcd/zuauth/server";
-import { useState } from "react";
 import { Box, Button, FormControl, FormLabel, Heading, Input, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Textarea, VStack, useSteps } from "@chakra-ui/react";
 import { createThirdwebClient } from "thirdweb";
 import { resolveScheme, upload } from "thirdweb/storage";
-import { createProfile } from "../profile";
+import { Profile, createProfile } from "../profile";
+import useLocalStorage from "use-local-storage";
+import { ZKEdDSAEventTicketPCD } from "@pcd/zk-eddsa-event-ticket-pcd";
+import QRCode from "react-qr-code";
+import { useEffect } from "react";
 
 if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
   throw new Error('Missing NEXT_PUBLIC_THIRDWEB_CLIENT_ID');
@@ -30,12 +32,19 @@ const steps = [
 ];
 
 export default function Home() {
-  const [authResult, setAuthResult] = useState<any | null>(null);
+  const [authResult, setAuthResult] = useLocalStorage<ZKEdDSAEventTicketPCD | null>('authResult', null);
+  const [profile, setProfile] = useLocalStorage<Profile | null>('profile', null);
 
-  const { activeStep, goToNext } = useSteps({
+  const { activeStep, goToNext, setActiveStep } = useSteps({
     index: 0,
     count: steps.length,
   });
+
+  useEffect(() => {
+    if (profile) {
+      setActiveStep(3);
+    }
+  }, [profile, setActiveStep]);
 
   const onClick = async () => {
     const result = await zuAuthPopup({
@@ -92,6 +101,10 @@ export default function Home() {
       uri,
     });
 
+    if (!authResult?.claim.partialTicket.attendeeSemaphoreId) {
+      throw new Error('No authResult');
+    }
+
     const payload = {
       attendeeSemaphoreId: authResult.claim.partialTicket.attendeeSemaphoreId,
       url,
@@ -101,8 +114,16 @@ export default function Home() {
 
     console.info(`Creating profile for ${JSON.stringify(payload)}`);
 
+    setProfile(payload);
     await createProfile(payload);
   };
+
+  const connectURL = new URL(`${process.env.NEXT_PUBLIC_URL}/connect`);
+  connectURL.searchParams.append('attendeeSemaphoreId', profile?.attendeeSemaphoreId ?? '');
+  connectURL.searchParams.append('name', profile?.title ?? '');
+  connectURL.searchParams.append('bio', profile?.description ?? '');
+  connectURL.searchParams.append('image', profile?.url ?? '');
+
   return (
     <>
       <Head>
@@ -134,7 +155,7 @@ export default function Home() {
             ))}
           </Stepper>
           {activeStep == 0 && (<VStack spacing={3}>
-            <p>ZuMatch let's you connect with other participants by exchanging your event profile with each other. It only needs three simple steps:</p>
+            <p>ZuMatch let&apos;s you connect with other participants by exchanging your event profile with each other. It only needs three simple steps:</p>
             <ol>
               <li>Verify event attendance with Zupass</li>
               <li>Setup your profile</li>
@@ -144,31 +165,35 @@ export default function Home() {
           </VStack>)}
           {activeStep == 1 && (<VStack spacing={3}>
             <p>By pressing below button, you will verify your attendance at ETHBerlin04 with Zupass.</p>
-            <Button onClick={onClick}>Verify</Button>
+            {authResult ? (<><p>Already verified</p><Button onClick={goToNext}>Next</Button></>) : <Button onClick={onClick}>Verify</Button>}
           </VStack>)}
           {activeStep == 2 && (<VStack spacing={3}>
             <p>Setup your profile by providing a name and an image, which will show up in contacts of your connections</p>
-            <form onSubmit={onSubmit}>
-              <VStack spacing={1}>
-                <FormControl isRequired>
-                  <FormLabel>Name</FormLabel>
-                  <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>Bio</FormLabel>
-                  <Textarea placeholder="Type a short bio about yourself" name="bio" />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Image</FormLabel>
-                  <input type="file" name="image" required={true} />
-                </FormControl>
-                <Button type="submit">Next</Button>
-              </VStack>
-            </form>
+            {profile ? (<><p>Profile created</p><Button onClick={goToNext}>Next</Button></>) :
+              (<form onSubmit={onSubmit}>
+                <VStack spacing={1}>
+                  <FormControl isRequired>
+                    <FormLabel>Name</FormLabel>
+                    <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Bio</FormLabel>
+                    <Textarea placeholder="Type a short bio about yourself" name="bio" />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Image</FormLabel>
+                    <input type="file" name="image" required={true} />
+                  </FormControl>
+                  <Button type="submit">Next</Button>
+                </VStack>
+              </form>)}
           </VStack>)}
           {activeStep == 3 && (<VStack spacing={3}>
-            <Spinner />
-            <p>Creating profile...</p>
+            {!profile ? (<><Spinner />
+              <p>Creating profile...</p></>) : (<>
+                <p>Profile created</p>
+                <QRCode value={connectURL.toString()} />
+              </>)}
           </VStack>)}
         </VStack>
       </main>
