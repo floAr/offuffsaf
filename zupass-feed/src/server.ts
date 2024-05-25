@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
-import { ProfileCreateParams, UnlockRequestParams } from './types'
+import { ProfileCreateParams, UnlockRequestParams, folderName } from './types'
 import { AddUnlock, GetAllPODS, GetAllUnlocks, GetFilteredPODS, StoreProfile } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
@@ -12,7 +12,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Configure CORS to allow requests from zupass.org and localhost
-const whitelist = ['https://zupass.org', 'http://localhost:3001'];
+const whitelist = ['https://zupass.org', 'http://localhost:3001', 'https://zumeet.pages.dev'];
 const corsOptions = {
     origin: function (origin: any, callback: any) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -64,9 +64,9 @@ app.post('/api/feeds', async (req, res) => {
         actions: []
     };
 
-    result.actions.push({ folder: "ETHBerlin-Game", type: "DeleteFolder_action", recursive: false });
+    result.actions.push({ folder: folderName, type: "DeleteFolder_action", recursive: false });
 
-    result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
+    result.actions.push({ folder: folderName, type: "AppendToFolder_action", pcds: allSPods });
 
     res.status(200).json(result);
 });
@@ -128,7 +128,7 @@ app.get('/dev/all', async (req, res) => {
         actions: []
     };
 
-    result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
+    result.actions.push({ folder: folderName, type: "AppendToFolder_action", pcds: allSPods });
 
     res.status(200).json({ allSPods, allUnlocks, filtered });
 });

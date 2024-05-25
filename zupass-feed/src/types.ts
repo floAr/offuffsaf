@@ -17,3 +17,6 @@ export type UnlockRequestParams = {
     attendeeSemaphoreIdA: string;
     attendeeSemaphoreIdB: string;
 }
+
+
+export const folderName = "ETHBerlin-ZuMeet";
