@@ -1,49 +1,41 @@
 import Head from "next/head";
 
 import { Inter } from "next/font/google";
-import styles from "@/styles/Home.module.css";
 import { zuAuthPopup } from "@pcd/zuauth";
 import { ETHBERLIN04 } from "@pcd/zuauth/configs/ethberlin";
 
 import { authenticate } from "@pcd/zuauth/server";
 import { useState } from "react";
+import { Box, Button, FormControl, FormLabel, Heading, Input, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Textarea, VStack, useSteps } from "@chakra-ui/react";
+import { createThirdwebClient } from "thirdweb";
+import { resolveScheme, upload } from "thirdweb/storage";
+import { createProfile } from "../profile";
 
-const inter = Inter({ subsets: ["latin"] });
+if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
+  throw new Error('Missing NEXT_PUBLIC_THIRDWEB_CLIENT_ID');
+}
+
+const client = createThirdwebClient({
+  clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+});
 
 // YOLO
 const watermark = "12345";
 const config = ETHBERLIN04;
 
-type ProfileCreateParams = {
-  attendeeSemaphoreId: string;
-  url: string;
-  title?: string;
-  description?: string;
-}
-
-const createProfile = async (params: ProfileCreateParams) => {
-  console.info(`Creating profile for ${JSON.stringify(params)}`);
-  const reponse = await fetch(`${process.env.NEXT_PUBLIC_FEED_SERVICE}/profile`, {
-    body: JSON.stringify(params),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!reponse.ok) {
-    throw new Error(`Failed to create profile with status ${reponse.status} and text: ${await reponse.text()}`);
-  }
-
-  const data = await reponse.json();
-
-  console.info(`Profile created with data: ${JSON.stringify(data)}`);
-}
+const steps = [
+  { title: 'Introduction', description: 'Verify your event attendance' },
+  { title: 'Attendance', description: 'Setup your attendance profile' },
+  { title: 'Profile', description: 'Confirm prepared data' },
+];
 
 export default function Home() {
-  const [pcdString, setPcdString] = useState<string | null>(null);
-  const [title, setTitle] = useState<string>("Title Text");
+  const [authResult, setAuthResult] = useState<any | null>(null);
 
+  const { activeStep, goToNext } = useSteps({
+    index: 0,
+    count: steps.length,
+  });
 
   const onClick = async () => {
     const result = await zuAuthPopup({
@@ -64,14 +56,8 @@ export default function Home() {
       throw new Error('No attendeeSemaphoreId');
     }
 
-    setPcdString(result.pcdStr);
-
-    await createProfile({
-      attendeeSemaphoreId: authResult.claim.partialTicket.attendeeSemaphoreId,
-      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Variegated_golden_frog_%28Mantella_baroni%29_Ranomafana.jpg/2560px-Variegated_golden_frog_%28Mantella_baroni%29_Ranomafana.jpg',
-      title,
-      description: 'Description Text',
-    });
+    setAuthResult(authResult);
+    goToNext();
     // Might be needed for adding a feed in the future
     // const reqq = {
     //   "type": "ProveAndAdd",
@@ -87,6 +73,36 @@ export default function Home() {
     //   folder:'DMs'
     // };
   };
+
+  const onSubmit = async (e: any) => {
+    e.preventDefault();
+    goToNext();
+    const data = new FormData(e.target);
+    const name = data.get('name')?.toString() ?? ':name:';
+    const image = data.get('image') as File;
+    const bio = data.get('bio')?.toString() ?? ':bio:';
+
+    const uri = await upload({
+      client,
+      files: [image],
+    });
+
+    const url = resolveScheme({
+      client,
+      uri,
+    });
+
+    const payload = {
+      attendeeSemaphoreId: authResult.claim.partialTicket.attendeeSemaphoreId,
+      url,
+      title: name,
+      description: bio,
+    };
+
+    console.info(`Creating profile for ${JSON.stringify(payload)}`);
+
+    await createProfile(payload);
+  };
   return (
     <>
       <Head>
@@ -95,12 +111,66 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-       <button onClick={onClick}>Press</button>
-       <input value={title} onChange={(e) => setTitle(e.target.value)} />
-       <p>
-        Debug: {pcdString}
-       </p>
+      <main>
+        <VStack spacing={3}>
+          <Heading>ZuMatch</Heading>
+          <Stepper index={activeStep}>
+            {steps.map((step, index) => (
+              <Step key={index}>
+                <StepIndicator>
+                  <StepStatus
+                    complete={<StepIcon />}
+                    incomplete={<StepNumber />}
+                    active={<StepNumber />}
+                  />
+                </StepIndicator>
+
+                <Box flexShrink='0'>
+                  <StepTitle>{step.title}</StepTitle>
+                  {/* <StepDescription>{step.description}</StepDescription> */}
+                </Box>
+                <StepSeparator />
+              </Step>
+            ))}
+          </Stepper>
+          {activeStep == 0 && (<VStack spacing={3}>
+            <p>ZuMatch let's you connect with other participants by exchanging your event profile with each other. It only needs three simple steps:</p>
+            <ol>
+              <li>Verify event attendance with Zupass</li>
+              <li>Setup your profile</li>
+              <li>Scan somebodys QR code</li>
+            </ol>
+            <Button onClick={goToNext}>Next</Button>
+          </VStack>)}
+          {activeStep == 1 && (<VStack spacing={3}>
+            <p>By pressing below button, you will verify your attendance at ETHBerlin04 with Zupass.</p>
+            <Button onClick={onClick}>Verify</Button>
+          </VStack>)}
+          {activeStep == 2 && (<VStack spacing={3}>
+            <p>Setup your profile by providing a name and an image, which will show up in contacts of your connections</p>
+            <form onSubmit={onSubmit}>
+              <VStack spacing={1}>
+                <FormControl isRequired>
+                  <FormLabel>Name</FormLabel>
+                  <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Bio</FormLabel>
+                  <Textarea placeholder="Type a short bio about yourself" name="bio" />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Image</FormLabel>
+                  <input type="file" name="image" required={true} />
+                </FormControl>
+                <Button type="submit">Next</Button>
+              </VStack>
+            </form>
+          </VStack>)}
+          {activeStep == 3 && (<VStack spacing={3}>
+            <Spinner />
+            <p>Creating profile...</p>
+          </VStack>)}
+        </VStack>
       </main>
     </>
   );
