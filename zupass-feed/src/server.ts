@@ -1,14 +1,11 @@
-import express, { json } from 'express';
+import express from 'express';
 import cors from 'cors';
-import { ListFeedsResponseValue, PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
-import { RSAImagePCD, prove, serialize } from "@pcd/rsa-image-pcd"
-import { ArgumentTypeName, PCD } from '@pcd/pcd-types';
-import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
-import NodeRSA from 'node-rsa';
+import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
 import { ProfileCreateParams, UnlockRequestParams } from './types'
-import { AddUnlock, GetAllPODS, StoreProfile } from './inmemoryDB';
+import { AddUnlock, GetAllPODS, GetFilteredPODS, StoreProfile } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
+import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
 
 
 const app = express();
@@ -58,27 +55,28 @@ app.post('/unlock', async (req, res) => {
 
 
 app.post('/api/feeds', async (req, res) => {
-    var request: PollFeedRequest = req.body;
-    var allSPods = GetAllPODS();
+    const request: PollFeedRequest = req.body;
+    var parsed = JSON.parse(request.pcd!.pcd);
+    console.log(parsed);
+
+    const sig = await SemaphoreSignaturePCDPackage.deserialize(request.pcd!.pcd);
+    console.log(sig);
+    console.log(`Requester public key: ${sig.claim.identityCommitment}`);
+    // // sig.claim.identityCommitment == public key of requester
+    var allSPods = GetFilteredPODS(sig.claim.identityCommitment);
     var result: PollFeedResponseValue = {
         actions: []
     };
 
     result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
 
-    // 
-    // const sig = await SemaphoreSignaturePCDPackage.deserialize(request.pcd as any);
-    // // sig.claim.identityCommitment == public key of requester
-    // // return all pcds that belong to sig.claim.identityCommitment
-    // var pcd = await createPCD("http://test.com/1.png", "test");
-    // const resp = await pcdResponse(pcd);
     res.status(200).json(result);
 });
 
 app.get('/dev/prefill', async (req, res) => {
     // generate some random profiles
     const profile1: ProfileCreateParams = {
-        attendeeSemaphoreId: "0x1234",
+        attendeeSemaphoreId: "0x1",
         url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Variegated_golden_frog_%28Mantella_baroni%29_Ranomafana.jpg/2560px-Variegated_golden_frog_%28Mantella_baroni%29_Ranomafana.jpg",
         title: "Frog",
         description: "A frog"
@@ -87,7 +85,7 @@ app.get('/dev/prefill', async (req, res) => {
     const profile1POD = await createSerializedPOD(EXAMPLE_EDDSA_PRIVATE_KEY, profile1.attendeeSemaphoreId, profile1.url, profile1.title, profile1.description);
 
     const profile2: ProfileCreateParams = {
-        attendeeSemaphoreId: "0x5678",
+        attendeeSemaphoreId: "0x2",
         url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/2560px-Gull_portrait_ca_usa.jpg",
         title: "Bird",
         description: "A bird"
@@ -96,7 +94,7 @@ app.get('/dev/prefill', async (req, res) => {
     const profile2POD = await createSerializedPOD(EXAMPLE_EDDSA_PRIVATE_KEY, profile2.attendeeSemaphoreId, profile2.url, profile2.title, profile2.description);
 
     const profile3: ProfileCreateParams = {
-        attendeeSemaphoreId: "0x9abc",
+        attendeeSemaphoreId: "0x3",
         url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Red_Kangaroo.jpg/2560px-Red_Kangaroo.jpg",
         title: "Kangaroo",
         description: "A kangaroo"
@@ -110,6 +108,25 @@ app.get('/dev/prefill', async (req, res) => {
 
     res.status(200).json({ success: true });
 });
+
+
+app.get('/dev/unlock', async (req, res) => {
+    const queryParams = req.query;
+    AddUnlock({ sid_a: queryParams.sid_a as string, sid_b: queryParams.sid_b as string });
+    res.status(200).json({ success: true });
+});
+
+app.get('/dev/all', async (req, res) => {
+    var allSPods = GetAllPODS();
+    var result: PollFeedResponseValue = {
+        actions: []
+    };
+
+    result.actions.push({ folder: "ETHBerlin-Game", type: "AppendToFolder_action", pcds: allSPods });
+
+    res.status(200).json(result);
+});
+
 
 
 

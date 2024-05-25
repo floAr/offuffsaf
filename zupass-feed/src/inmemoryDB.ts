@@ -16,7 +16,7 @@ export const AddUnlock = (unlock: Unlock) => {
         _unlocks.push(unlock);
 }
 
-export const FilterPODs = (requester_sid: string): SerializedPCD<PCD<PODPCDClaim, PODPCDProof>>[] => {
+export const GetFilteredPODS = (requester_sid: string): SerializedPCD<PCD<PODPCDClaim, PODPCDProof>>[] => {
     const unlockedPODS = new Array<SerializedPCD<PCD<PODPCDClaim, PODPCDProof>>>();
     const allUnlocks = Array.from(_storedSerializedPODs.keys()).filter(sid => IsUnlocked(sid, requester_sid));
     // try getting each serialized POD for the requester
