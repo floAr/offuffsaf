@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { PollFeedRequest, PollFeedResponseValue } from '@pcd/passport-interface';
 import { FeedRegistration } from './feed';
@@ -6,6 +6,7 @@ import { ProfileCreateParams, UnlockRequestParams, folderName } from './types'
 import { AddUnlock, ClearAll, GetAllPODS, GetAllUnlocks, GetFilteredPODS, GetStats, StoreProfile, initialize } from './inmemoryDB';
 import { createSerializedPOD } from './createPOD';
 import { SemaphoreSignaturePCDPackage } from '@pcd/semaphore-signature-pcd';
+import { graphBuilder } from './graph';
 
 // Init express app and cors
 const app = express();
@@ -71,11 +72,26 @@ app.post('/unlock', async (req, res) => {
     res.status(200).json({ success: true });
 });
 
+app.get('/graph', graphBuilder);
 
 // dev endpoints to make our hackathon life a tiinyyyy bit easier
+// pull dev password from env DEV_PASSWORD
+const devPassword = process.env.DEV_PASSWORD;
+
+const protectDevRoutes = (req: Request, res: Response) => {
+    if (req.query.password === devPassword) {
+        return true;
+    } else {
+        res.status(401).send('Unauthorized');
+        return false;
+    }
+}
 
 // generate mock profiles
 app.get('/dev/prefill', async (req, res) => {
+    if (!protectDevRoutes(req, res)) {
+        return;
+    }
     // generate some random profiles
     const profile1: ProfileCreateParams = {
         attendeeSemaphoreId: "0x1",
@@ -113,6 +129,9 @@ app.get('/dev/prefill', async (req, res) => {
 
 // add a custom unlock
 app.get('/dev/unlock', async (req, res) => {
+    if (!protectDevRoutes(req, res)) {
+        return;
+    }
     const queryParams = req.query;
     await AddUnlock({ sid_a: queryParams.sid_a as string, sid_b: queryParams.sid_b as string });
     res.status(200).json({ success: true });
@@ -120,12 +139,18 @@ app.get('/dev/unlock', async (req, res) => {
 
 // clear everything
 app.get('/dev/purge', async (req, res) => {
+    if (!protectDevRoutes(req, res)) {
+        return;
+    }
     await ClearAll();
     res.status(200).json({ success: true });
 });
 
 // get a view of the current state
 app.get('/dev/all', async (req, res) => {
+    if (!protectDevRoutes(req, res)) {
+        return;
+    }
     // check if there is a sid query parameter
     const queryParams = req.query;
     var filtered: any[] = [];
@@ -146,6 +171,9 @@ app.get('/dev/all', async (req, res) => {
 
 // debug stats , showing total profiles and your reach within the network
 app.get('/dev/stats', async (req, res) => {
+    if (!protectDevRoutes(req, res)) {
+        return;
+    }
     const queryParams = req.query;
 
     if (queryParams.sid) {
@@ -154,6 +182,7 @@ app.get('/dev/stats', async (req, res) => {
     else
         res.status(200).json({});
 });
+
 
 
 

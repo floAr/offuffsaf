@@ -38,6 +38,16 @@ export const GetAllPODS = (): SerializedPCD<PCD<PODPCDClaim, PODPCDProof>>[] => 
     return Array.from(_storedSerializedPODs.values());
 }
 
+export const GetAllRaw = (): ProfileCreateParams[] => {
+    return Array.from(_storedRawData.values());
+}
+
+export const GetFilteredRaw = (sid: string): ProfileCreateParams[] => {
+    var others = Array.from(_storedRawData.values()).filter(p => IsUnlocked(p.attendeeSemaphoreId, sid));
+    others.push(_storedRawData.get(sid) as ProfileCreateParams);
+    return others;
+}
+
 export const GetAllUnlocks = (): Unlock[] => {
     return _unlocks;
 }
