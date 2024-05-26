@@ -53,7 +53,6 @@ export default function Connect() {
 			<VStack spacing={4} padding="20px">
 				<VStack maxW={350} spacing={4}>
 					<Heading as="h1" textStyle='h1' sx={{ fontFamily: '"Poetsen One", sans-serif' }} textTransform="lowercase">Zumeet</Heading>
-					<Box>Confirm below to connect</Box>
 					{isClient ? (
 						<>
 							<Box borderWidth="2px" borderColor="2px" borderRadius="12px" padding="2px">
@@ -63,7 +62,10 @@ export default function Connect() {
 									<Text>{bio}</Text>
 								</VStack>
 							</Box>
-							{success ? <>Success! <Link href="/" color="teal.500">Back to QR</Link></> : (<><Button onClick={onClick}>Confirm</Button> as {profile?.title}</>)}
+							{success ? <>Success! <Link href="/" color="teal.500">Back to Share</Link></> : (<><Button colorScheme="teal" onClick={onClick}>Connect</Button></>)}
+							<Box textAlign="center">
+								After connecting, you will see each other in Zupass.
+							</Box>
 						</>
 					) : null}
 				</VStack>

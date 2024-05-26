@@ -194,14 +194,14 @@ export default function Home() {
               <>
                 <Tabs variant='soft-rounded' colorScheme='teal'>
                   <TabList justifyContent="center">
-                    <Tab>QR</Tab>
+                    <Tab>Share</Tab>
                     <Tab>Profile</Tab>
                   </TabList>
 
                   <TabPanels>
                     <TabPanel>
                       <VStack spacing={4}>
-                        <Text>Scan me with your camera app</Text>
+                        <Text>Show others to scan with your camera app</Text>
                         <QRCode value={connectURL.toString()} size={318} />
                       </VStack>
                     </TabPanel>
@@ -216,7 +216,7 @@ export default function Home() {
                     </TabPanel>
                   </TabPanels>
                 </Tabs>
-                <Link color="teal.500" href="https://zupass.org/#/?folder=ETHBerlin-Zumeet" isExternal>View Scans in Zupass</Link>
+                <Link color="teal.500" href="https://zupass.org/#/?folder=ETHBerlin-Zumeet" isExternal>View connections in Zupass</Link>
                 <Box>or</Box>
                 <Link color="teal.500" href="https://zupass.org/#/add-subscription?url=https%3A%2F%2Fzupass-feed.vercel.app%2Fapi%2Ffeeds" isExternal>Re-subscribe to feed</Link>
               </>
