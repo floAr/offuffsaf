@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ZKEdDSAEventTicketPCD } from "@pcd/zk-eddsa-event-ticket-pcd";
 import useLocalStorage from "use-local-storage";
 import { connect } from "@/connect";
+import Link from "next/link";
 
 export default function Connect() {
 	const router = useRouter();
@@ -22,7 +23,7 @@ export default function Connect() {
 		console.info(`Profile: ${JSON.stringify(profile)}`);
 	}, [profile, router]);
 
-	const { attendeeSemaphoreId, image, name } = router.query;
+	const { attendeeSemaphoreId, image, name, bio } = router.query;
 
 	const onClick = async () => {
 		if (!profile) {
@@ -50,11 +51,12 @@ export default function Connect() {
 		</Head>
 		<main>
 			<VStack spacing={3}>
-				<Heading>ZuMatch</Heading>
+				<Heading>Zumeet</Heading>
 				{isClient ? (<>
 					<Image src={image as string} alt={name as string} />
 					<Heading>{name}</Heading>
-					{success ? 'Success!' : (<><Button onClick={onClick}>Connect</Button> as {profile?.title}</>)};
+					<p>{bio}</p>
+					{success ? <Link href="/">Back to my Pass</Link> : (<><Button onClick={onClick}>Connect</Button> as {profile?.title}</>)};
 				</>) : null}
 			</VStack>
 		</main>

@@ -4,14 +4,14 @@ import { zuAuthPopup } from "@pcd/zuauth";
 import { ETHBERLIN04 } from "@pcd/zuauth/configs/ethberlin";
 
 import { authenticate } from "@pcd/zuauth/server";
-import { Box, Button, FormControl, FormLabel, Heading, Input, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Textarea, VStack, useSteps } from "@chakra-ui/react";
+import { Box, Button, Checkbox, FormControl, FormLabel, Heading, Image, Input, Link, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Textarea, VStack, useSteps } from "@chakra-ui/react";
 import { createThirdwebClient } from "thirdweb";
 import { resolveScheme, upload } from "thirdweb/storage";
 import { Profile, createProfile } from "../profile";
 import useLocalStorage from "use-local-storage";
 import { ZKEdDSAEventTicketPCD } from "@pcd/zk-eddsa-event-ticket-pcd";
 import QRCode from "react-qr-code";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
   throw new Error('Missing NEXT_PUBLIC_THIRDWEB_CLIENT_ID');
@@ -26,14 +26,16 @@ const watermark = "12345";
 const config = ETHBERLIN04;
 
 const steps = [
-  { title: 'Introduction', description: 'Verify your event attendance' },
-  { title: 'Attendance', description: 'Setup your attendance profile' },
-  { title: 'Profile', description: 'Confirm prepared data' },
+  { title: 'Get Started', description: 'Verify your event attendance' },
+  { title: 'Subscribe', description: 'Scan somebodys QR code' },
+  { title: 'Verify', description: 'Setup your attendance profile' },
+  { title: 'Create', description: 'Confirm prepared data' },
 ];
 
 export default function Home() {
   const [authResult, setAuthResult] = useLocalStorage<ZKEdDSAEventTicketPCD | null>('authResult', null);
   const [profile, setProfile] = useLocalStorage<Profile | null>('profile', null);
+  const [subscribed, setSubscribed] = useState<boolean>(!!profile);
 
   const { activeStep, goToNext, setActiveStep } = useSteps({
     index: 0,
@@ -42,7 +44,7 @@ export default function Home() {
 
   useEffect(() => {
     if (profile) {
-      setActiveStep(3);
+      setActiveStep(4);
     }
   }, [profile, setActiveStep]);
 
@@ -133,70 +135,104 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <VStack spacing={3}>
-          <Heading>ZuMatch</Heading>
-          <Stepper index={activeStep}>
-            {steps.map((step, index) => (
-              <Step key={index}>
-                <StepIndicator>
-                  <StepStatus
-                    complete={<StepIcon />}
-                    incomplete={<StepNumber />}
-                    active={<StepNumber />}
-                  />
-                </StepIndicator>
+        <VStack spacing={3} padding="20px">
+          <VStack maxW={350}>
+            <Heading>Zumeet</Heading>
+            {!profile ? (<>
+              <Stepper index={activeStep}>
+                {steps.map((step, index) => (
+                  <Step key={index}>
+                    <StepIndicator>
+                      <StepStatus
+                        complete={<StepIcon />}
+                        incomplete={<StepNumber />}
+                        active={<StepNumber />}
+                      />
+                    </StepIndicator>
 
-                <Box flexShrink='0'>
-                  <StepTitle>{step.title}</StepTitle>
-                  {/* <StepDescription>{step.description}</StepDescription> */}
-                </Box>
-                <StepSeparator />
-              </Step>
-            ))}
-          </Stepper>
-          {activeStep == 0 && (<VStack spacing={3}>
-            <p>ZuMatch let&apos;s you connect with other participants by exchanging your event profile with each other. It only needs three simple steps:</p>
-            <ol>
-              <li>Verify event attendance with Zupass</li>
-              <li>Setup your profile</li>
-              <li>Scan somebodys QR code</li>
-            </ol>
-            <Button onClick={goToNext}>Next</Button>
-          </VStack>)}
-          {activeStep == 1 && (<VStack spacing={3}>
-            <p>By pressing below button, you will verify your attendance at ETHBerlin04 with Zupass.</p>
-            {authResult ? (<><p>Already verified</p><Button onClick={goToNext}>Next</Button></>) : <Button onClick={onClick}>Verify</Button>}
-          </VStack>)}
-          {activeStep == 2 && (<VStack spacing={3}>
-            <p>Setup your profile by providing a name and an image, which will show up in contacts of your connections</p>
-            {profile ? (<><p>Profile created</p><Button onClick={goToNext}>Next</Button></>) :
-              (<form onSubmit={onSubmit}>
-                <VStack spacing={1}>
-                  <FormControl isRequired>
-                    <FormLabel>Name</FormLabel>
-                    <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
-                  </FormControl>
-                  <FormControl isRequired>
-                    <FormLabel>Bio</FormLabel>
-                    <Textarea placeholder="Type a short bio about yourself" name="bio" />
-                  </FormControl>
-                  <FormControl>
-                    <FormLabel>Image</FormLabel>
-                    <input type="file" name="image" required={true} />
-                  </FormControl>
-                  <Button type="submit">Next</Button>
-                </VStack>
-              </form>)}
-          </VStack>)}
-          {activeStep == 3 && (<VStack spacing={3}>
-            {!profile ? (<><Spinner />
-              <p>Creating profile...</p></>) : (<>
-                <p>Profile created</p>
-                <QRCode value={connectURL.toString()} />
-              </>)}
-          </VStack>)}
+                    <Box flexShrink='0'>
+                      {activeStep === index ? <StepTitle>{step.title}</StepTitle> : null}
+                      {/* <StepDescription>{step.description}</StepDescription> */}
+                    </Box>
+                    <StepSeparator />
+                  </Step>
+                ))}
+              </Stepper>
+              {activeStep == 0 && (<VStack spacing={4}>
+                <p>Zumeet let&apos;s you connect with other event participants by exchanging a unique event profile in three steps:</p>
+                <ol>
+                  <li><Text fontWeight="bold">Verify</Text> event attendance with Zupass</li>
+                  <li><Text fontWeight="bold">Create</Text> your profile</li>
+                  <li><Text fontWeight="bold">Scan</Text> somebodys QR code</li>
+                </ol>
+                <Button onClick={goToNext}>Next</Button>
+              </VStack>)}
+              {activeStep == 2 && (<VStack spacing={4}>
+                <p>Click &apos;Confirm&apos; to confirm your attendance at ETHBerlin04 using <Link href="https://zupass.org/" color='teal.500' isExternal>Zupass</Link>.</p>
+                {authResult ? (<><p>Already confirmed</p><Button onClick={goToNext}>Next</Button></>) : <Button onClick={onClick}>Confirm</Button>}
+              </VStack>)}
+              {activeStep == 1 && (<VStack spacing={4}>
+                <p>Click <Link color='teal.500' href="https://zupass.org/#/add-subscription?url=https%3A%2F%2Fzupass-feed.vercel.app%2Fapi%2Ffeeds" onClick={() => { setSubscribed(true) }} isExternal>Subscribe</Link> to open a new tab and subscribe to the  &apos;ETHBerlin-Zumeet&apos; feed, then <b>come back here</b>.</p>
+                <Checkbox isChecked={subscribed} onChange={(e) => { setSubscribed(e.target.checked) }}>I have subscribed</Checkbox>
+                <Button onClick={goToNext} isDisabled={!subscribed}>Next</Button>
+              </VStack>)}
+              {activeStep == 3 && (<VStack spacing={4}>
+                <p>Create your event profile by providing name, note and image. This information will be shown in your connections&apos; feed. </p>
+                {profile ? (<><p>Profile created</p><Button onClick={goToNext}>Next</Button></>) :
+                  (<form onSubmit={onSubmit}>
+                    <VStack spacing={2}>
+                      <FormControl isRequired>
+                        <FormLabel>Name</FormLabel>
+                        <Input type='text' placeholder="Type an alias e.g. Telegram handle, Twitter name etc." name="name" />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Note</FormLabel>
+                        <Textarea placeholder="Type a short personal note" name="bio" />
+                      </FormControl>
+                      <FormControl isRequired>
+                        <FormLabel>Image</FormLabel>
+                        <input type="file" name="image" required={true} />
+                      </FormControl>
+                      <Button type="submit" marginTop="12px">Create</Button>
+                    </VStack>
+                  </form>)}
+              </VStack>)}
+              {activeStep == 4 && (<VStack spacing={4}>
+                <Spinner />
+                <p>Creating profile...</p>
+              </VStack>)}
+            </>) : (
+              <>
+                <Tabs variant='soft-rounded' colorScheme='green'>
+                  <TabList>
+                    <Tab>QR</Tab>
+                    <Tab>Profile</Tab>
+                  </TabList>
+
+                  <TabPanels>
+                    <TabPanel>
+                      <VStack spacing={4}>
+                        <Text>Scan me with your camera app</Text>
+                        <QRCode value={connectURL.toString()} size={318} />
+                      </VStack>
+                    </TabPanel>
+                    <TabPanel>
+                      <Box borderWidth="2px" borderColor="2px" borderRadius="12px" padding="2px">
+                        <VStack>
+                          <Heading as="h3" size="md" textTransform="uppercase" paddingTop="10px">{profile.title}</Heading>
+                          <Image src={profile.url} alt={profile.title} />
+                          <Text>{profile.description}</Text>
+                        </VStack>
+                      </Box>
+                    </TabPanel>
+                  </TabPanels>
+                </Tabs>
+                <Link color="teal.500" href="https://zupass.org/#/?folder=ETHBerlin-Zumeet" isExternal>View Scans in Zupass</Link>
+              </>
+            )}
+          </VStack>
         </VStack>
-      </main>
+      </main >
     </>
   );
 }
