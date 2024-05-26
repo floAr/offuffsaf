@@ -5,11 +5,15 @@ Too shy to break the ice?
 
 Just use Zumeet – the perfect conversation starter with a gamified twist to help you meet new people and collect lasting memories!
 
-### The Zummet Approach
+Get started now: [https://zumeet.pages.dev/](https://zumeet.pages.dev/)
+
+### The Zumeet Approach
 Zumeet allows event participant to create a personalized digitalized artifact. Those artifacts can be exchanged between participants by meeting in person and sharing their Zupass public identity with each other. 
 Collected artifacts are stored in the Zupass application under an event specific folder. 
 
 Event organizers can access the social graph to gather insights. This can be used to identify social clusters, well connected people in the social peer group, as well as deriving inforamtion about the social strucutre of the group of event attendees. This allows to direct decision on social acitvations to facility better networking.
+
+watch ETHBerlin04 social graph evolve here: [Social Graph](https://zupass-feed.vercel.app/graph)
 
 Given the zk proofing ability on Zupass over the stored PODs one could build digital experiences on top of that, like a website, only accessible by participants I have connected with. 
 
@@ -26,7 +30,7 @@ There were some hiccups integrating with Zupass, as well as blindspots on our si
 ![schema](https://github.com/floAr/offuffsaf/blob/main/Schema.png)
 
 #### Frontend / Client
-* React
+* Next / React
 * Zupass api to create PODs and store them as PCD in the Zupass app
 * Zupass auth flow to verify event attendance
 
