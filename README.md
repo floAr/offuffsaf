@@ -6,6 +6,8 @@ Too shy to break the ice?
 Just use Zumeet – the perfect conversation starter with a gamified twist to help you meet new people and collect lasting memories!
 
 Get started now: [https://zumeet.pages.dev/](https://zumeet.pages.dev/)
+[Pitchdeck](https://docs.google.com/presentation/d/1HNuD7O_F8Wq5RBFvafbyJSb_sYgyOwrmSLWnZ08WX48/edit?pli=1)
+[Videos](https://drive.google.com/file/d/1dhKkAdsGQ4W7ac3vqkXcv7IAqSVffkjT/view?usp=sharing)
 
 ### The Zumeet Approach
 Zumeet allows event participant to create a personalized digitalized artifact. Those artifacts can be exchanged between participants by meeting in person and sharing their Zupass public identity with each other. 
