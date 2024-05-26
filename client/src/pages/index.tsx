@@ -152,7 +152,6 @@ export default function Home() {
 
                     <Box flexShrink='0'>
                       {activeStep === index ? <StepTitle>{step.title}</StepTitle> : null}
-                      {/* <StepDescription>{step.description}</StepDescription> */}
                     </Box>
                     <StepSeparator />
                   </Step>
@@ -205,7 +204,7 @@ export default function Home() {
             </>) : (
               <>
                 <Tabs variant='soft-rounded' colorScheme='green'>
-                  <TabList>
+                  <TabList justifyContent="center">
                     <Tab>QR</Tab>
                     <Tab>Profile</Tab>
                   </TabList>
