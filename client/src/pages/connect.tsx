@@ -17,7 +17,7 @@ export default function Connect() {
 	const [profile] = useLocalStorage<Profile | null>('profile', null);
 	useEffect(() => {
 		if (!profile) {
-			// router.push('/');
+			router.push('/');
 		}
 		setIsClient(true);
 		console.info(`Profile: ${JSON.stringify(profile)}`);

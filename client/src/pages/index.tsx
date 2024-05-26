@@ -12,6 +12,7 @@ import useLocalStorage from "use-local-storage";
 import { ZKEdDSAEventTicketPCD } from "@pcd/zk-eddsa-event-ticket-pcd";
 import QRCode from "react-qr-code";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 if (!process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID) {
   throw new Error('Missing NEXT_PUBLIC_THIRDWEB_CLIENT_ID');
@@ -35,6 +36,18 @@ const steps = [
 export default function Home() {
   const [authResult, setAuthResult] = useLocalStorage<ZKEdDSAEventTicketPCD | null>('authResult', null);
   const [profile, setProfile] = useLocalStorage<Profile | null>('profile', null);
+
+  const router = useRouter();
+
+  const { reset } = router.query;
+
+  useEffect(() => {
+    if (reset === 'true') {
+      setAuthResult(null);
+      setProfile(null);
+      router.push('/');
+    }
+  }, [reset]);
 
   const [subscribed, setSubscribed] = useState<boolean>(!!profile);
 
