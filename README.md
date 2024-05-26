@@ -14,6 +14,7 @@ Collected artifacts are stored in the Zupass application under an event specific
 Event organizers can access the social graph to gather insights. This can be used to identify social clusters, well connected people in the social peer group, as well as deriving inforamtion about the social strucutre of the group of event attendees. This allows to direct decision on social acitvations to facility better networking.
 
 watch ETHBerlin04 social graph evolve here: [Social Graph](https://zupass-feed.vercel.app/graph)
+![Nascend Social graph](https://github.com/floAr/offuffsaf/blob/main/NascentSocialGraph.png)
 
 Given the zk proofing ability on Zupass over the stored PODs one could build digital experiences on top of that, like a website, only accessible by participants I have connected with. 
 
