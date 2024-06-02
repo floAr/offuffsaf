@@ -2,6 +2,7 @@ import Head from "next/head";
 
 import { zuAuthPopup } from "@pcd/zuauth";
 import { ETHBERLIN04 } from "@pcd/zuauth/configs/ethberlin";
+import { ETHPRAGUE_TICKETS } from "@pcd/zuauth/configs/ethprague";
 
 import { authenticate } from "@pcd/zuauth/server";
 import { Box, Button, Checkbox, FormControl, FormLabel, Heading, Image, Input, Link, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Textarea, VStack, useSteps } from "@chakra-ui/react";
@@ -25,6 +26,7 @@ const client = createThirdwebClient({
 // YOLO
 const watermark = "12345";
 const config = ETHBERLIN04;
+const configprague = ETHPRAGUE_TICKETS;
 
 const steps = [
   { title: 'Get Started' },
@@ -69,14 +71,18 @@ export default function Home() {
         revealAttendeeSemaphoreId: true,
       },
       watermark,
-      config,
+      config:[
+        config, configprague
+        ]
     });
 
     if (result.type !== 'pcd') {
       throw new Error('Unexpected result type');
     }
 
-    const authResult = await authenticate(result.pcdStr, watermark, config);
+    const authResult = await authenticate(result.pcdStr, watermark,  config:[
+        config, configprague
+        ]);
 
     if (!authResult.claim.partialTicket.attendeeSemaphoreId) {
       throw new Error('No attendeeSemaphoreId in ticket');
