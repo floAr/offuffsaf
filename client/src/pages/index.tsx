@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { zuAuthPopup, ETHPRAGUE_TICKET } from "@pcd/zuauth";
+import { zuAuthPopup, ETHPRAGUE_TICKET, ETHBERLIN04 } from "@pcd/zuauth";
 
 import { authenticate } from "@pcd/zuauth/server";
 import { Box, Button, Checkbox, FormControl, FormLabel, Heading, Image, Input, Link, Spinner, Step, StepIcon, StepIndicator, StepNumber, StepSeparator, StepStatus, StepTitle, Stepper, Tab, TabList, TabPanel, TabPanels, Tabs, Text, Textarea, VStack, useSteps } from "@chakra-ui/react";
@@ -23,7 +23,7 @@ const client = createThirdwebClient({
 
 // YOLO
 const watermark = "12345";
-const config = ETHPRAGUE_TICKET;
+const config = [...ETHPRAGUE_TICKET, ...ETHBERLIN04];
 
 const steps = [
   { title: 'Get Started' },
