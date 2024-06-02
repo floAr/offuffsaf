@@ -168,7 +168,7 @@ export default function Home() {
                 <Button colorScheme='teal' onClick={goToNext}>Next</Button>
               </VStack>)}
               {activeStep == 2 && (<VStack spacing={4}>
-                <p>Click &apos;Confirm&apos; to confirm your attendance at ETHBerlin04 using <Link href="https://zupass.org/" color='teal.500' isExternal>Zupass</Link>.</p>
+                <p>Click &apos;Confirm&apos; to confirm your attendance at ETHBerlin04 or at EthPrague using <Link href="https://zupass.org/" color='teal.500' isExternal>Zupass</Link>.</p>
                 {authResult ? (<><p>Already confirmed!</p><Button colorScheme='teal' onClick={goToNext}>Next</Button></>) : <Button colorScheme='teal' onClick={onClick}>Confirm</Button>}
               </VStack>)}
               {activeStep == 1 && (<VStack spacing={3}>
